@@ -1,0 +1,34 @@
+{
+    "formats": [
+        {
+            "output-suffix": "site",
+            "max-width": 2048,
+            "max-height": 3641,
+            "thumb-width": 512,
+            "thumb-height": 512,
+            "process-as-md": true,
+            "will-process-flag": true,
+            "include-soc-media-flag" : true
+        },
+        {
+            "output-suffix": "tapas",
+            "max-width": 940,
+            "max-height": 1504,
+            "thumb-width": 300,
+            "thumb-height": 300,
+            "process-as-md": false,
+            "will-process-flag": true,
+            "include-soc-media-flag" : false
+        },
+        {
+            "output-suffix": "webtoon",
+            "max-width": 800,
+            "max-height": 1280,
+            "thumb-width": 160,
+            "thumb-height": 151,
+            "process-as-md": false,
+            "will-process-flag": false,
+            "include-soc-media-flag" : false
+        }
+    ]
+}
