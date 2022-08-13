@@ -63,8 +63,9 @@ def ProcessImage(configItem, imagePath):
         if resizedImg.size[1] <= resizeH: 
             noResizeImgPath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
             resizedImg.save(noResizeImgPath)
+            print("Image saved at {}".format(noResizeImgPath))
             imgPathList.append(noResizeImgPath)
-            return
+            return imgPathList
 
         #cut the image into tiles.
         newImgH = resizedImg.size[1]
@@ -138,12 +139,17 @@ def ProcessSocialMediaCard(configItem, path) :
         return newPath
 
 def CreatePost(configItem, textPath):
-    file = open(textPath, "r")
-    
-    output = file.read()
-    if not output:
-        output += "<post text goes here>"
-    
+    output = ""
+    #read the file contents and append to the markdown header info
+    with open(textPath, errors='backslashreplace') as postFile:
+        lines = postFile.readlines()
+        if lines:
+            for line in lines:
+                newline = line.rstrip() + "\n\r"
+                output += newline
+        else: 
+            output += "<post text goes here>\n"
+
     parentDirAndFile = textPath.rsplit('\\', 1)
     FileAndExt = os.path.splitext(parentDirAndFile[1])
     newFilePath = parentDirAndFile[0] 
@@ -161,14 +167,14 @@ def CreateSiteMarkdown(configItem, textPath, socMediaName, thumbName, imageList)
     socMediaDirAndFile = socMediaName.rsplit('\\', 1)
 
     args = {
-        "title" : "Untitled Comic",
-        "slug" : "create-slug-here",
-        "date" : datetime.utcnow().isoformat(),
-        "posttype" : "comicpage",
-        "comic" : "<comicFolderName>",
-        "chapter" : "<chapterName>",
-        "socialMediaImage" : socMediaDirAndFile[1],
-        "thumbnailImage" : thumbDirAndFile[1]
+        "title" : "\"Untitled Comic\"",
+        "slug" : "\"create-slug-here\"",
+        "date" : "\"" + datetime.utcnow().isoformat() + "Z\"",
+        "posttype" : "\"comicpage\"",
+        "comic" : "\"<comicFolderName>\"",
+        "chapter" : "\"<chapterName>\"",
+        "socialMediaImage" : "\"" + socMediaDirAndFile[1] + "\"",
+        "thumbnailImage" : "\"" + thumbDirAndFile[1] + "\""
     }
 
     output = '''---
@@ -186,19 +192,21 @@ thumbnailImage: {thumbnailImage}
         output += "comicImageStack:\n" 
         for imageName in imageList: 
             imgDirAndFile = imageName.rsplit('\\', 1)
-            output += " - " + imgDirAndFile[1] + "\n"
+            output += " - \"" + imgDirAndFile[1] + "\"\n"
     else : 
         imgDirAndFile = imageList[0].rsplit('\\', 1)
-        output += "comicImage:" + imgDirAndFile[1]
+        output += "comicImage: \"" + imgDirAndFile[1] + "\"\n"
 
     output += "---\n" #end header
 
     #read the file contents and append to the markdown header info
-    with open(textPath, "r") as postFile:
-        postOutput = postFile.read()
-        if postOutput:
-            output += postOutput
-        else:
+    with open(textPath, errors='backslashreplace') as postFile:
+        lines = postFile.readlines()
+        if lines:
+            for line in lines:
+                newline = line.rstrip() + "\n\r"
+                output += newline
+        else: 
             output += "<post text goes here>\n"
     
     #write out the markdown header.
@@ -206,7 +214,8 @@ thumbnailImage: {thumbnailImage}
     FileAndExt = os.path.splitext(parentDirAndFile[1])
     newFilePath = parentDirAndFile[0] 
     newFilePath += "\\" + configItem["output-suffix"] + "\\" 
-    newFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
+    #newFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
+    newFilePath += "index.md"
 
     with open(newFilePath, 'w') as file : 
         file.write(output)
@@ -219,7 +228,7 @@ thumbnailImage: {thumbnailImage}
 numArgs = len(sys.argv)
 parentPath = '';
 if(numArgs > 1): 
-    print("\nFirst arg:", sys.argv[1])
+    # print("\nFirst arg:", sys.argv[1])
 
     parentPath = sys.argv[1]
     
@@ -227,8 +236,6 @@ if(numArgs > 1):
         print("Parent directory {} doesn't exist!".format(parentPath))
         showHelp()
         exit()
-    else: 
-        print("Found directory {}".format(parentPath))
 
     if(not os.path.isdir(parentPath)):
         print("Did not enter a valid path! (user entered: {})".format(parentPath))
@@ -292,5 +299,5 @@ for configItem in configData["formats"]:
         else:
             CreatePost(configItem, postFilePath)                
 
-    print("Processed images and post for {}, output dir: {}\n\n".format(configItem["output-suffix"], newOutputPath))
+    print("Processed images and post for {}, output dir: {}\n".format(configItem["output-suffix"], newOutputPath))
 
