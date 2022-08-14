@@ -27,7 +27,7 @@
             "thumb-width": 160,
             "thumb-height": 151,
             "process-as-md": false,
-            "will-process-flag": false,
+            "will-process-flag": true,
             "include-soc-media-flag" : false
         }
     ]

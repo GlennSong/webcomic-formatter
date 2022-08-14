@@ -2,6 +2,7 @@ import json     #load json data
 import sys      #command line arguments
 import os       #make directory
 import math
+import time
 from PIL import Image # image manipulation
 from datetime import datetime
 
@@ -249,6 +250,8 @@ else:
 
 # TODO: detect if that folder exists
 
+startTime = time.time()
+
 #read the config file for the different webcomic formats.
 configData = {}
 with open("config.json") as configFile : 
@@ -301,3 +304,5 @@ for configItem in configData["formats"]:
 
     print("Processed images and post for {}, output dir: {}\n".format(configItem["output-suffix"], newOutputPath))
 
+timeLapsed = time.time() - startTime
+print("Job completed and took {} seconds".format(timeLapsed))
