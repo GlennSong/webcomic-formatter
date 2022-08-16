@@ -83,11 +83,13 @@ def ProcessImage(configItem, imagePath):
 
         #calculate any remainder
         remainderH = newImgH - (splitImgCnt * resizeH)
-        remainderBox = (0, resizeH * splitImgCnt, resizeW, resizeH * splitImgCnt + remainderH)
-        remainderImgTile = resizedImg.crop(remainderBox)
-        remainderImgTilePath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1]
-        remainderImgTile.save(remainderImgTilePath)
-        print("Image Tile saved at {}".format(remainderImgTilePath))
+        if(remainderH > 0):
+            remainderBox = (0, resizeH * splitImgCnt, resizeW, resizeH * splitImgCnt + remainderH)
+            remainderImgTile = resizedImg.crop(remainderBox)
+            remainderImgTilePath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1]
+            remainderImgTile.save(remainderImgTilePath)
+            imgPathList.append(remainderImgTilePath)
+            print("Image Tile saved at {}".format(remainderImgTilePath))
     
     return imgPathList
 
@@ -163,19 +165,15 @@ def CreatePost(configItem, textPath):
 
 # This is specific for the gatsby webcomic site template.
 def CreateSiteMarkdown(configItem, textPath, socMediaName, thumbName, imageList):
-
-    thumbDirAndFile = thumbName.rsplit('\\', 1)
-    socMediaDirAndFile = socMediaName.rsplit('\\', 1)
-
+    print(imageList)
+    
     args = {
         "title" : "\"Untitled Comic\"",
         "slug" : "\"create-slug-here\"",
         "date" : "\"" + datetime.utcnow().isoformat() + "Z\"",
         "posttype" : "\"comicpage\"",
         "comic" : "\"<comicFolderName>\"",
-        "chapter" : "\"<chapterName>\"",
-        "socialMediaImage" : "\"" + socMediaDirAndFile[1] + "\"",
-        "thumbnailImage" : "\"" + thumbDirAndFile[1] + "\""
+        "chapter" : "\"<chapterName>\""
     }
 
     output = '''---
@@ -185,18 +183,24 @@ date: {date}
 posttype: {posttype}
 comic: {comic}
 chapter: {chapter}
-socialMediaImage: {socialMediaImage}
-thumbnailImage: {thumbnailImage}
 '''.format(**args)
 
+    if thumbName: 
+        thumbDirAndFile = thumbName.rsplit('\\', 1)
+        output += "thumbnailImage: \"" + thumbDirAndFile[1] + "\""
+
+    if socMediaName: 
+        socMediaDirAndFile = socMediaName.rsplit('\\', 1)
+        output += "\nsocialMediaImage: \"" + socMediaDirAndFile[1] + "\""
+
     if len(imageList) > 1: 
-        output += "comicImageStack:\n" 
+        output += "\ncomicImageStack:\n" 
         for imageName in imageList: 
             imgDirAndFile = imageName.rsplit('\\', 1)
             output += " - \"" + imgDirAndFile[1] + "\"\n"
     else : 
         imgDirAndFile = imageList[0].rsplit('\\', 1)
-        output += "comicImage: \"" + imgDirAndFile[1] + "\"\n"
+        output += "\ncomicImage: \"" + imgDirAndFile[1] + "\"\n"
 
     output += "---\n" #end header
 
