@@ -295,7 +295,9 @@ for configItem in configData["formats"]:
         elif(configItem["include-soc-media-flag"] and IsSocialMediaCard(fullPath)):
             socMediaReturnValue = ProcessSocialMediaCard(configItem, fullPath)
         elif(IsImage(fullPath)):
-            imgListReturnValue = ProcessImage(configItem, fullPath)
+            tempList = ProcessImage(configItem, fullPath)
+            for tempImgName in tempList: 
+                imgListReturnValue.append(tempImgName)
         elif(IsTextFile(fullPath)):
             postFilePath = fullPath
 
