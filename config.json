@@ -7,8 +7,9 @@
             "thumb-width": 512,
             "thumb-height": 512,
             "process-as-md": true,
-            "will-process-flag": true,
-            "include-soc-media-flag" : true
+            "will-process-flag": false,
+            "include-soc-media-flag" : true,
+            "build-vertical-image": false
         },
         {
             "output-suffix": "tapas",
@@ -17,8 +18,9 @@
             "thumb-width": 300,
             "thumb-height": 300,
             "process-as-md": false,
-            "will-process-flag": true,
-            "include-soc-media-flag" : false
+            "will-process-flag": false,
+            "include-soc-media-flag" : false,
+            "build-vertical-image": false
         },
         {
             "output-suffix": "webtoon",
@@ -27,8 +29,31 @@
             "thumb-width": 160,
             "thumb-height": 151,
             "process-as-md": false,
+            "will-process-flag": false,
+            "include-soc-media-flag" : false,
+            "build-vertical-image": false
+        },
+        {
+            "output-suffix": "comicfury",
+            "max-width": 950,
+            "max-height": 1280,
+            "thumb-width": 150,
+            "thumb-height": 150,
+            "process-as-md": false,
+            "will-process-flag": false,
+            "include-soc-media-flag" : false,
+            "build-vertical-image": false
+        },
+        {
+            "output-suffix": "deviantart",
+            "max-width": 1140,
+            "max-height": 1280,
+            "thumb-width": 150,
+            "thumb-height": 150,
+            "process-as-md": false,
             "will-process-flag": true,
-            "include-soc-media-flag" : false
+            "include-soc-media-flag" : false,
+            "build-vertical-image": true
         }
     ]
 }

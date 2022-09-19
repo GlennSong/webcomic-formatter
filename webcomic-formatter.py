@@ -43,6 +43,39 @@ def IsTextFile(filePath):
     else: 
         return False
 
+def VerticalStitchImages(imageFileList): 
+    
+    maxW = 0
+    maxH = 0
+    Images = []
+    
+    parentDirAndFile = imageFileList[0].rsplit('\\', 1)
+    FileAndExt = os.path.splitext(parentDirAndFile[1])
+    newImageFilePath = parentDirAndFile[0] + "\\"
+#    newImageFilePath += "\\" + configItem["output-suffix"] + "\\" 
+
+    for imageFile in imageFileList:
+        data = Image.open(imageFile)
+        (w, h) = data.size
+        
+        if(w >= maxW) : 
+            maxW = w
+
+        maxH += h
+        Images.append(data)
+
+    vertImage = Image.new('RGB', (maxW, maxH))
+    currH = 0
+    for imageFile in imageFileList :
+        data = Image.open(imageFile)
+        (imgW, imgH) = data.size
+        vertImage.paste(im = data, box=(0,currH))
+        currH += imgH
+
+    filePath = newImageFilePath + "vert-" + configItem["output-suffix"] + FileAndExt[1]
+    vertImage.save(filePath)
+    print("Single Vertical Image saved at {}".format(filePath))
+
 def ProcessImage(configItem, imagePath):
     imgPathList = []
     # img = Image.open(imagePath)
@@ -300,6 +333,10 @@ for configItem in configData["formats"]:
                 imgListReturnValue.append(tempImgName)
         elif(IsTextFile(fullPath)):
             postFilePath = fullPath
+
+    # do we need to create a single vertical image?
+    if configItem["build-vertical-image"]: 
+        VerticalStitchImages(imgListReturnValue)
 
     #process the post info last.    
     if postFilePath: 
