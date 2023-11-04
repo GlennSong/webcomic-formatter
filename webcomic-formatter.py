@@ -247,14 +247,6 @@ chapter: {chapter}
         else: 
             output += "<post text goes here>\n"
 
-    #add a boilerplate section that contains links
-    with open("boilerplate.md", errors='backslashreplace') as postFile:
-        lines = postFile.readlines()
-        if lines:
-            for line in lines:
-                newline = line.rstrip() + "\n"
-                output += newline
-
     #write out the markdown header.
     parentDirAndFile = textPath.rsplit('\\', 1)
     FileAndExt = os.path.splitext(parentDirAndFile[1])
