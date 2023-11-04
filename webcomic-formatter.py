@@ -15,7 +15,7 @@ def showHelp():
 
 def IsThumbnail(imageFilePath):
     if(isinstance(imageFilePath, str)
-        and imageFilePath.endswith(".png") 
+        and (imageFilePath.endswith(".png") or (imageFilePath.endswith(".jpg")))
         and imageFilePath.find("thumb") != -1):
         return True
     else: 
@@ -31,7 +31,7 @@ def IsSocialMediaCard(imageFilePath):
 
 def IsImage(imageFilePath):
     if(isinstance(imageFilePath, str)
-        and imageFilePath.endswith(".png")):
+        and imageFilePath.endswith(".png")) or (imageFilePath.endswith(".jpg")):
         return True
     else: 
         return False
@@ -242,11 +242,19 @@ chapter: {chapter}
         lines = postFile.readlines()
         if lines:
             for line in lines:
-                newline = line.rstrip() + "\n\r"
+                newline = line.rstrip() + "\n"
                 output += newline
         else: 
             output += "<post text goes here>\n"
-    
+
+    #add a boilerplate section that contains links
+    with open("boilerplate.md", errors='backslashreplace') as postFile:
+        lines = postFile.readlines()
+        if lines:
+            for line in lines:
+                newline = line.rstrip() + "\n"
+                output += newline
+
     #write out the markdown header.
     parentDirAndFile = textPath.rsplit('\\', 1)
     FileAndExt = os.path.splitext(parentDirAndFile[1])

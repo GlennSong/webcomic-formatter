@@ -2,19 +2,19 @@
     "formats": [
         {
             "output-suffix": "site",
-            "max-width": 2048,
+            "max-width": 1140,
             "max-height": 3641,
             "thumb-width": 512,
             "thumb-height": 512,
             "process-as-md": true,
-            "will-process-flag": false,
+            "will-process-flag": true,
             "include-soc-media-flag" : true,
             "build-vertical-image": false
         },
         {
             "output-suffix": "tapas",
             "max-width": 940,
-            "max-height": 1504,
+            "max-height": 1689,
             "thumb-width": 300,
             "thumb-height": 300,
             "process-as-md": false,
@@ -25,7 +25,7 @@
         {
             "output-suffix": "webtoon",
             "max-width": 800,
-            "max-height": 1280,
+            "max-height": 1024,
             "thumb-width": 160,
             "thumb-height": 151,
             "process-as-md": false,
@@ -36,7 +36,18 @@
         {
             "output-suffix": "comicfury",
             "max-width": 950,
-            "max-height": 1280,
+            "max-height": 1689,
+            "thumb-width": 150,
+            "thumb-height": 150,
+            "process-as-md": false,
+            "will-process-flag": false,
+            "include-soc-media-flag" : false,
+            "build-vertical-image": false
+        },
+        {
+            "output-suffix": "instagram",
+            "max-width": 1080,
+            "max-height": 1350,
             "thumb-width": 150,
             "thumb-height": 150,
             "process-as-md": false,
@@ -47,11 +58,11 @@
         {
             "output-suffix": "deviantart",
             "max-width": 1140,
-            "max-height": 1280,
+            "max-height": 3000,
             "thumb-width": 150,
             "thumb-height": 150,
             "process-as-md": false,
-            "will-process-flag": true,
+            "will-process-flag": false,
             "include-soc-media-flag" : false,
             "build-vertical-image": true
         }
