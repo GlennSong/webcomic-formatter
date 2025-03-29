@@ -3,7 +3,7 @@ import sys      #command line arguments
 import os       #make directory
 import math
 import time
-from PIL import Image # image manipulation
+from PIL import Image, UnidentifiedImageError
 from datetime import datetime
 
 
@@ -79,100 +79,143 @@ def VerticalStitchImages(imageFileList):
 def ProcessImage(configItem, imagePath):
     imgPathList = []
     # img = Image.open(imagePath)
-    with Image.open(imagePath) as img : 
-        parentDirAndFile = imagePath.rsplit('\\', 1)
-        FileAndExt = os.path.splitext(parentDirAndFile[1])
-        newImageFilePath = parentDirAndFile[0] 
-        newImageFilePath += "\\" + configItem["output-suffix"] + "\\" 
+    if imagePath.startswith("._"):
+        print(f"Skipping hidden file: {imagePath}")
+        return None
 
-        resizeW = configItem["max-width"]
-        resizeH = configItem["max-height"]
+    try: 
+        with Image.open(imagePath) as img : 
+            #parentDirAndFile = imagePath.rsplit('\\', 1)
+            parentDirAndFile = os.path.split(imagePath)
+            FileAndExt = os.path.splitext(parentDirAndFile[1])
+            newImageFilePath = parentDirAndFile[0] 
+            #newImageFilePath += "\\" + configItem["output-suffix"] + "\\" 
+            newImageFilePath = os.path.join(newImageFilePath, configItem["output-suffix"])
 
-        #resize image
-        baseW = img.size[0]
-        p = resizeW/float(baseW)
-        resizedImg = img.resize((resizeW,math.ceil(img.size[1] * p)), Image.Resampling.LANCZOS)
+            resizeW = configItem["max-width"]
+            resizeH = configItem["max-height"]
 
-        #if the resized image height is less than the tile height, save the file out as-is
-        if resizedImg.size[1] <= resizeH: 
-            noResizeImgPath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
-            resizedImg.save(noResizeImgPath)
-            print("Image saved at {}".format(noResizeImgPath))
-            imgPathList.append(noResizeImgPath)
-            return imgPathList
+            #resize image
+            baseW = img.size[0]
+            p = resizeW/float(baseW)
+            resizedImg = img.resize((resizeW,math.ceil(img.size[1] * p)), Image.Resampling.LANCZOS)
 
-        #cut the image into tiles.
-        newImgH = resizedImg.size[1]
-        splitImgCnt = math.floor(newImgH/resizeH)
-        imgCnt = 0
-        for i in range(0, resizeH * splitImgCnt, resizeH):
-            box = (0, i, resizeW, i+resizeH)
-            imgTile = resizedImg.crop(box)
-            imgTilePath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1]
-            imgTile.save(imgTilePath)
-            print("Image Tile saved at {}".format(imgTilePath))
-            imgPathList.append(imgTilePath)
-            imgCnt += 1
+            #if the resized image height is less than the tile height, save the file out as-is
+            if resizedImg.size[1] <= resizeH: 
+                noResizeImgPath = os.path.join(newImageFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1])
 
-        #calculate any remainder
-        remainderH = newImgH - (splitImgCnt * resizeH)
-        if(remainderH > 0):
-            remainderBox = (0, resizeH * splitImgCnt, resizeW, resizeH * splitImgCnt + remainderH)
-            remainderImgTile = resizedImg.crop(remainderBox)
-            remainderImgTilePath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1]
-            remainderImgTile.save(remainderImgTilePath)
-            imgPathList.append(remainderImgTilePath)
-            print("Image Tile saved at {}".format(remainderImgTilePath))
-    
+                #noResizeImgPath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
+                resizedImg.save(noResizeImgPath)
+                print("Image saved at {}".format(noResizeImgPath))
+                imgPathList.append(noResizeImgPath)
+                return imgPathList
+
+            #cut the image into tiles.
+            newImgH = resizedImg.size[1]
+            splitImgCnt = math.floor(newImgH/resizeH)
+            imgCnt = 0
+            for i in range(0, resizeH * splitImgCnt, resizeH):
+                box = (0, i, resizeW, i+resizeH)
+                imgTile = resizedImg.crop(box)
+                
+                imgTilePath = os.path.join(newImageFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1])
+
+                #imgTilePath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1]
+                imgTile.save(imgTilePath)
+                print("Image Tile saved at {}".format(imgTilePath))
+                imgPathList.append(imgTilePath)
+                imgCnt += 1
+
+            #calculate any remainder
+            remainderH = newImgH - (splitImgCnt * resizeH)
+            if(remainderH > 0):
+                remainderBox = (0, resizeH * splitImgCnt, resizeW, resizeH * splitImgCnt + remainderH)
+                remainderImgTile = resizedImg.crop(remainderBox)
+                #remainderImgTilePath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1]
+                
+                remainderImgTilePath = os.path.join(newImageFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1])
+
+                remainderImgTile.save(remainderImgTilePath)
+                imgPathList.append(remainderImgTilePath)
+                print("Image Tile saved at {}".format(remainderImgTilePath))
+    except UnidentifiedImageError:
+        print(f"Error: Cannot identify image file {imagePath}")
+
     return imgPathList
 
 def ProcessThumbnail(configItem, thumbnailPath): 
-    # img = Image.open(thumbnailPath)
-    with Image.open(thumbnailPath) as img: 
+    if thumbnailPath.startswith("._"):
+        print(f"Skipping hidden file: {thumbnailPath}")
+        return None
 
-        #split at the end to remove the file name.
-        parentDirAndFile = thumbnailPath.rsplit('\\', 1)
-        FileAndExt = os.path.splitext(parentDirAndFile[1])
-        newThumbFilePath = parentDirAndFile[0] 
-        newThumbFilePath += "\\" + configItem["output-suffix"] + "\\" 
-        newThumbFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
+    try:
+        # img = Image.open(thumbnailPath)
+        with Image.open(thumbnailPath) as img: 
 
-        thumbW = configItem["thumb-width"]
-        thumbH = configItem["thumb-height"]
-        maxDim = max(thumbW, thumbH)
-        minDim = min(thumbW, thumbH)
-        newImg = img.resize((maxDim, maxDim), Image.Resampling.LANCZOS)
-        
-        offsetA = math.ceil((maxDim - minDim) * 0.5)
-        offsetB = (maxDim - minDim) - offsetA
-        if(minDim == thumbW): 
-            top = 0
-            left = offsetA
-            right = maxDim  - offsetB
-            bottom = maxDim
-        elif(minDim == thumbH):
-            top = offsetA
-            left = 0
-            right = maxDim
-            bottom = maxDim - offsetB
+            #split at the end to remove the file name.
+            #parentDirAndFile = thumbnailPath.rsplit('\\', 1)
+            parentDirAndFile = os.path.split(thumbnailPath)
 
-        croppedNewImg = newImg.crop((left, top, right, bottom))
-        croppedNewImg.save(newThumbFilePath)
-        print("Created thumbnail: {} at size {}x{}".format(newThumbFilePath, croppedNewImg.width, croppedNewImg.height))
-        return newThumbFilePath
+            FileAndExt = os.path.splitext(parentDirAndFile[1])
+            newThumbFilePath = parentDirAndFile[0] 
+            #newThumbFilePath += "\\" + configItem["output-suffix"] + "\\" 
+            newThumbFilePath = os.path.join(newThumbFilePath, configItem["output-suffix"])
+
+            newThumbFilePath = os.path.join(newThumbFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1])
+
+            # newThumbFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
+
+            thumbW = configItem["thumb-width"]
+            thumbH = configItem["thumb-height"]
+            maxDim = max(thumbW, thumbH)
+            minDim = min(thumbW, thumbH)
+            newImg = img.resize((maxDim, maxDim), Image.Resampling.LANCZOS)
+            
+            offsetA = math.ceil((maxDim - minDim) * 0.5)
+            offsetB = (maxDim - minDim) - offsetA
+            if(minDim == thumbW): 
+                top = 0
+                left = offsetA
+                right = maxDim  - offsetB
+                bottom = maxDim
+            elif(minDim == thumbH):
+                top = offsetA
+                left = 0
+                right = maxDim
+                bottom = maxDim - offsetB
+
+            croppedNewImg = newImg.crop((left, top, right, bottom))
+            croppedNewImg.save(newThumbFilePath)
+            print("Created thumbnail: {} at size {}x{}".format(newThumbFilePath, croppedNewImg.width, croppedNewImg.height))
+            return newThumbFilePath
+    except UnidentifiedImageError:
+        print(f"Error: Cannot identify image file {thumbnailPath}")
 
 def ProcessSocialMediaCard(configItem, path) : 
-    with Image.open(path) as img:
-        #split at the end to remove the file name.
-        parentDirAndFile = path.rsplit('\\', 1)
-        FileAndExt = os.path.splitext(parentDirAndFile[1])
-        newPath = parentDirAndFile[0] 
-        newPath += "\\" + configItem["output-suffix"] + "\\" 
-        newPath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
-        newImg = img.copy()
-        newImg.save(newPath)
-        print("Copied social media card:{}".format(newPath))
-        return newPath
+    if path.startswith("._"):
+        print(f"Skipping hidden file: {path}")
+        return None
+
+    try: 
+        with Image.open(path) as img:
+            #split at the end to remove the file name.
+            #parentDirAndFile = path.rsplit('\\', 1)
+            parentDirAndFile = os.path.split(path)
+
+            FileAndExt = os.path.splitext(parentDirAndFile[1])
+            newPath = parentDirAndFile[0] 
+            #newPath += "\\" + configItem["output-suffix"] + "\\" 
+            newPath = os.path.join(newPath, configItem["output-suffix"])
+
+            newPath = os.path.join(newPath, FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1])
+
+            #newPath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
+            newImg = img.copy()
+            newImg.save(newPath)
+            print("Copied social media card:{}".format(newPath))
+            return newPath
+    except UnidentifiedImageError:
+        print(f"Error: Cannot identify image file {path}")
 
 def CreatePost(configItem, textPath):
     output = ""
@@ -186,11 +229,16 @@ def CreatePost(configItem, textPath):
         else: 
             output += "<post text goes here>\n"
 
-    parentDirAndFile = textPath.rsplit('\\', 1)
+    #parentDirAndFile = textPath.rsplit('\\', 1)
+    parentDirAndFile = os.path.split(textPath)
+
     FileAndExt = os.path.splitext(parentDirAndFile[1])
     newFilePath = parentDirAndFile[0] 
-    newFilePath += "\\" + configItem["output-suffix"] + "\\" 
-    newFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
+    #newFilePath += "\\" + configItem["output-suffix"] + "\\" 
+    newFilePath = os.path.join(newFilePath, configItem["output-suffix"])
+
+    newFilePath = os.path.join(newFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1])
+    #newFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
 
     #write out the markdown header.
     with open(newFilePath, 'w') as file : 
@@ -198,6 +246,10 @@ def CreatePost(configItem, textPath):
 
 # This is specific for the gatsby webcomic site template.
 def CreateSiteMarkdown(configItem, textPath, socMediaName, thumbName, imageList):
+    if os.path.basename(textPath).startswith("._"):
+        print(f"Skipping hidden file: {textPath}")
+        return None
+
     print(imageList)
     
     args = {
@@ -219,41 +271,71 @@ chapter: {chapter}
 '''.format(**args)
 
     if thumbName: 
-        thumbDirAndFile = thumbName.rsplit('\\', 1)
+        #thumbDirAndFile = thumbName.rsplit('\\', 1)
+        thumbDirAndFile = os.path.split(thumbName)
+
         output += "thumbnailImage: \"" + thumbDirAndFile[1] + "\""
 
     if socMediaName: 
-        socMediaDirAndFile = socMediaName.rsplit('\\', 1)
+        #socMediaDirAndFile = socMediaName.rsplit('\\', 1)
+        socMediaDirAndFile = os.path.split(socMediaName)
+        
         output += "\nsocialMediaImage: \"" + socMediaDirAndFile[1] + "\""
 
     if len(imageList) > 1: 
         output += "\ncomicImageStack:\n" 
         for imageName in imageList: 
-            imgDirAndFile = imageName.rsplit('\\', 1)
+            #imgDirAndFile = imageName.rsplit('\\', 1)
+            imgDirAndFile = os.path.split(imageName)
+
             output += " - \"" + imgDirAndFile[1] + "\"\n"
     else : 
-        imgDirAndFile = imageList[0].rsplit('\\', 1)
+        #imgDirAndFile = imageList[0].rsplit('\\', 1)
+        imgDirAndFile = os.path.split(imageList[0])
+
         output += "\ncomicImage: \"" + imgDirAndFile[1] + "\"\n"
 
     output += "---\n" #end header
 
-    #read the file contents and append to the markdown header info
-    with open(textPath, errors='backslashreplace') as postFile:
-        lines = postFile.readlines()
-        if lines:
-            for line in lines:
-                newline = line.rstrip() + "\n"
-                output += newline
-        else: 
-            output += "<post text goes here>\n"
+    try:
+        print(f"filename is {textPath}")
+        with open(textPath, "r", encoding="utf-8", errors="replace") as postFile:
+            lines = postFile.readlines()
+            if lines:
+                for line in lines:
+                    # Handle any weird line endings
+                    newline = line.rstrip("\r\n") + "\n"
+                    output += newline
+            else:
+                output += "<post text goes here>\n"
+    except FileNotFoundError:
+        print(f"Error: File not found at {textPath}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # #read the file contents and append to the markdown header info
+    # with open(textPath, errors='backslashreplace') as postFile:
+    #     lines = postFile.readlines()
+    #     if lines:
+    #         for line in lines:
+    #             newline = line.rstrip() + "\n"
+    #             output += newline
+    #     else: 
+    #         output += "<post text goes here>\n"
 
     #write out the markdown header.
-    parentDirAndFile = textPath.rsplit('\\', 1)
+    #parentDirAndFile = textPath.rsplit('\\', 1)
+    parentDirAndFile = os.path.split(textPath)
+
     FileAndExt = os.path.splitext(parentDirAndFile[1])
     newFilePath = parentDirAndFile[0] 
-    newFilePath += "\\" + configItem["output-suffix"] + "\\" 
+    #newFilePath += "\\" + configItem["output-suffix"] + "\\" 
+    newFilePath = os.path.join(newFilePath, configItem["output-suffix"])
+    #print("New file path:", newFilePath)
+
     #newFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
-    newFilePath += "index.md"
+    #newFilePath += "index.md"
+    newFilePath = os.path.join(newFilePath, "index.md")
 
     with open(newFilePath, 'w') as file : 
         file.write(output)
@@ -321,6 +403,10 @@ for configItem in configData["formats"]:
 
     #process the files
     for filePathStr in dirFiles : 
+        if filePathStr.startswith("._"):
+            print(f"Skipping hidden file: {filePathStr}")
+            continue
+
         fileData = os.path.splitext(filePathStr)
         fullPath = os.path.join(parentPath, filePathStr)
         if(IsThumbnail(fullPath)): 
