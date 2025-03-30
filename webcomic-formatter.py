@@ -4,7 +4,7 @@ import os       #make directory
 import math
 import time
 from PIL import Image, UnidentifiedImageError
-from datetime import datetime
+from datetime import datetime, UTC
 
 
 #function definitions
@@ -85,11 +85,9 @@ def ProcessImage(configItem, imagePath):
 
     try: 
         with Image.open(imagePath) as img : 
-            #parentDirAndFile = imagePath.rsplit('\\', 1)
             parentDirAndFile = os.path.split(imagePath)
             FileAndExt = os.path.splitext(parentDirAndFile[1])
             newImageFilePath = parentDirAndFile[0] 
-            #newImageFilePath += "\\" + configItem["output-suffix"] + "\\" 
             newImageFilePath = os.path.join(newImageFilePath, configItem["output-suffix"])
 
             resizeW = configItem["max-width"]
@@ -104,7 +102,6 @@ def ProcessImage(configItem, imagePath):
             if resizedImg.size[1] <= resizeH: 
                 noResizeImgPath = os.path.join(newImageFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1])
 
-                #noResizeImgPath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
                 resizedImg.save(noResizeImgPath)
                 print("Image saved at {}".format(noResizeImgPath))
                 imgPathList.append(noResizeImgPath)
@@ -120,7 +117,6 @@ def ProcessImage(configItem, imagePath):
                 
                 imgTilePath = os.path.join(newImageFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1])
 
-                #imgTilePath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1]
                 imgTile.save(imgTilePath)
                 print("Image Tile saved at {}".format(imgTilePath))
                 imgPathList.append(imgTilePath)
@@ -131,7 +127,6 @@ def ProcessImage(configItem, imagePath):
             if(remainderH > 0):
                 remainderBox = (0, resizeH * splitImgCnt, resizeW, resizeH * splitImgCnt + remainderH)
                 remainderImgTile = resizedImg.crop(remainderBox)
-                #remainderImgTilePath = newImageFilePath + FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1]
                 
                 remainderImgTilePath = os.path.join(newImageFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + f"{imgCnt:02}" + FileAndExt[1])
 
@@ -153,17 +148,13 @@ def ProcessThumbnail(configItem, thumbnailPath):
         with Image.open(thumbnailPath) as img: 
 
             #split at the end to remove the file name.
-            #parentDirAndFile = thumbnailPath.rsplit('\\', 1)
             parentDirAndFile = os.path.split(thumbnailPath)
 
             FileAndExt = os.path.splitext(parentDirAndFile[1])
             newThumbFilePath = parentDirAndFile[0] 
-            #newThumbFilePath += "\\" + configItem["output-suffix"] + "\\" 
             newThumbFilePath = os.path.join(newThumbFilePath, configItem["output-suffix"])
 
             newThumbFilePath = os.path.join(newThumbFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1])
-
-            # newThumbFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
 
             thumbW = configItem["thumb-width"]
             thumbH = configItem["thumb-height"]
@@ -199,17 +190,14 @@ def ProcessSocialMediaCard(configItem, path) :
     try: 
         with Image.open(path) as img:
             #split at the end to remove the file name.
-            #parentDirAndFile = path.rsplit('\\', 1)
             parentDirAndFile = os.path.split(path)
 
             FileAndExt = os.path.splitext(parentDirAndFile[1])
             newPath = parentDirAndFile[0] 
-            #newPath += "\\" + configItem["output-suffix"] + "\\" 
             newPath = os.path.join(newPath, configItem["output-suffix"])
 
             newPath = os.path.join(newPath, FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1])
 
-            #newPath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
             newImg = img.copy()
             newImg.save(newPath)
             print("Copied social media card:{}".format(newPath))
@@ -229,16 +217,13 @@ def CreatePost(configItem, textPath):
         else: 
             output += "<post text goes here>\n"
 
-    #parentDirAndFile = textPath.rsplit('\\', 1)
     parentDirAndFile = os.path.split(textPath)
 
     FileAndExt = os.path.splitext(parentDirAndFile[1])
     newFilePath = parentDirAndFile[0] 
-    #newFilePath += "\\" + configItem["output-suffix"] + "\\" 
     newFilePath = os.path.join(newFilePath, configItem["output-suffix"])
 
     newFilePath = os.path.join(newFilePath, FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1])
-    #newFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
 
     #write out the markdown header.
     with open(newFilePath, 'w') as file : 
@@ -255,7 +240,7 @@ def CreateSiteMarkdown(configItem, textPath, socMediaName, thumbName, imageList)
     args = {
         "title" : "\"Untitled Comic\"",
         "slug" : "\"create-slug-here\"",
-        "date" : "\"" + datetime.utcnow().isoformat() + "Z\"",
+        "date" : "\"" + datetime.now(UTC).isoformat(timespec='microseconds').replace("+00:00", "") + "Z\"",
         "posttype" : "\"comicpage\"",
         "comic" : "\"<comicFolderName>\"",
         "chapter" : "\"<chapterName>\""
@@ -271,13 +256,11 @@ chapter: {chapter}
 '''.format(**args)
 
     if thumbName: 
-        #thumbDirAndFile = thumbName.rsplit('\\', 1)
         thumbDirAndFile = os.path.split(thumbName)
 
         output += "thumbnailImage: \"" + thumbDirAndFile[1] + "\""
 
     if socMediaName: 
-        #socMediaDirAndFile = socMediaName.rsplit('\\', 1)
         socMediaDirAndFile = os.path.split(socMediaName)
         
         output += "\nsocialMediaImage: \"" + socMediaDirAndFile[1] + "\""
@@ -285,12 +268,10 @@ chapter: {chapter}
     if len(imageList) > 1: 
         output += "\ncomicImageStack:\n" 
         for imageName in imageList: 
-            #imgDirAndFile = imageName.rsplit('\\', 1)
             imgDirAndFile = os.path.split(imageName)
 
             output += " - \"" + imgDirAndFile[1] + "\"\n"
     else : 
-        #imgDirAndFile = imageList[0].rsplit('\\', 1)
         imgDirAndFile = os.path.split(imageList[0])
 
         output += "\ncomicImage: \"" + imgDirAndFile[1] + "\"\n"
@@ -329,12 +310,9 @@ chapter: {chapter}
 
     FileAndExt = os.path.splitext(parentDirAndFile[1])
     newFilePath = parentDirAndFile[0] 
-    #newFilePath += "\\" + configItem["output-suffix"] + "\\" 
     newFilePath = os.path.join(newFilePath, configItem["output-suffix"])
     #print("New file path:", newFilePath)
 
-    #newFilePath += FileAndExt[0] + "-" + configItem["output-suffix"] + FileAndExt[1]
-    #newFilePath += "index.md"
     newFilePath = os.path.join(newFilePath, "index.md")
 
     with open(newFilePath, 'w') as file : 
